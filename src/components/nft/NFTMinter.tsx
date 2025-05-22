@@ -109,6 +109,25 @@ export function NFTMinter({ wallet }: NFTMinterProps) {
     
   }, [wallet, form]);
 
+  // wallet-changedイベントのリスナーを追加
+  useEffect(() => {
+    const handleWalletChanged = () => {
+      console.log("NFTMinter: ウォレット変更イベント受信");
+      
+      // ミント状態をリセット
+      setMintedNFTId(null);
+      
+      // 処理中の状態をリセット
+      setIsLoading(false);
+    };
+    
+    window.addEventListener('wallet-changed', handleWalletChanged);
+    
+    return () => {
+      window.removeEventListener('wallet-changed', handleWalletChanged);
+    };
+  }, []);
+
   // 接続回復時のイベントリスナー（コンポーネントマウント時に一度だけ設定）
   useEffect(() => {
     const handleWalletReconnected = (event: Event) => {

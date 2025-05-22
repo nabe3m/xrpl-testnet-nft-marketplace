@@ -242,6 +242,15 @@ export function WalletManager() {
       // グローバルステートにウォレット情報を設定
       finishWalletSwitch(newWallets[WalletType.ALICE]);
       
+      // 少し遅延を入れてからウォレット変更イベントを発火
+      setTimeout(() => {
+        // ウォレット変更イベントを発火
+        window.dispatchEvent(new CustomEvent('wallet-changed', { 
+          detail: { walletType: WalletType.ALICE } 
+        }));
+        console.log("ウォレット作成後、変更イベントを発火: ALICE");
+      }, 500); // 0.5秒の遅延
+      
       toast.success("ウォレットが作成されました");
       setReconnectAttempts(0); // 成功したらリセット
     } catch (error) {
