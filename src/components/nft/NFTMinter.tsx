@@ -247,6 +247,14 @@ export function NFTMinter({ wallet }: NFTMinterProps) {
       const data = await response.json();
       console.log("ファイルアップロード成功", data);
       
+      // Vercel環境でのデバッグ情報を表示
+      if (data.isVercelProduction) {
+        console.log("Vercel環境での一時ファイル情報:", {
+          tmpImagePath: data.tmpImagePath,
+          tmpMetadataPath: data.tmpMetadataPath
+        });
+      }
+      
       // XRPLクライアントを取得
       console.log("XRPLクライアント取得中...");
       let client;

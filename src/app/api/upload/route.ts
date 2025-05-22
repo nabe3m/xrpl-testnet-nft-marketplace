@@ -26,10 +26,32 @@ export async function POST(request: NextRequest) {
     const safeName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
     const imageFileName = `${Date.now()}_${safeName}`;
     
-    // 画像の保存先ディレクトリの確認と作成
-    const imagesDirectory = join(process.cwd(), 'public', 'images');
-    const metadataDirectory = join(process.cwd(), 'public', 'metadata');
+    // Vercel環境では/tmpディレクトリを使用する
+    const isVercelProduction = process.env.VERCEL === '1';
     
+    // 画像の保存先ディレクトリの確認と作成
+    let imagesDirectory;
+    let metadataDirectory;
+    let imageUrlBase;
+    let metadataUrlBase;
+    
+    if (isVercelProduction) {
+      // Vercel環境では一時ディレクトリを使用
+      imagesDirectory = join('/tmp', 'images');
+      metadataDirectory = join('/tmp', 'metadata');
+      
+      // URLは相対パスのままにする（クライアント側でAPI応答を処理する際に使用）
+      imageUrlBase = `/images/${imageFileName}`;
+      metadataUrlBase = `/metadata`;
+    } else {
+      // 開発環境ではpublicディレクトリを使用
+      imagesDirectory = join(process.cwd(), 'public', 'images');
+      metadataDirectory = join(process.cwd(), 'public', 'metadata');
+      imageUrlBase = `/images/${imageFileName}`;
+      metadataUrlBase = `/metadata`;
+    }
+    
+    // ディレクトリが存在しない場合は作成
     if (!existsSync(imagesDirectory)) {
       await mkdir(imagesDirectory, { recursive: true });
     }
@@ -50,7 +72,7 @@ export async function POST(request: NextRequest) {
     const metadata = {
       name,
       description,
-      image: `/images/${imageFileName}`,
+      image: imageUrlBase,
       created_at: new Date().toISOString()
     };
     
@@ -58,11 +80,32 @@ export async function POST(request: NextRequest) {
     await writeFile(metadataPath, JSON.stringify(metadata, null, 2));
     
     // クライアントに返すURL
-    const metadataUrl = `/metadata/${metadataFileName}`;
+    const metadataUrl = `${metadataUrlBase}/${metadataFileName}`;
+
+    // Vercel環境では、一時ファイルのURLを返すだけ（実際のファイルアクセスはできない）
+    if (isVercelProduction) {
+      console.log('Vercel環境: 一時ファイルを作成しました', { 
+        imagePath, 
+        metadataPath,
+        imageUrlBase,
+        metadataUrl
+      });
+      
+      // 一時ファイルのパスをレスポンスに含める（デバッグ用）
+      return NextResponse.json({
+        success: true,
+        imageUrl: imageUrlBase,
+        metadataUrl: metadataUrl,
+        metadataFileName,
+        isVercelProduction: true,
+        tmpImagePath: imagePath,
+        tmpMetadataPath: metadataPath
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      imageUrl: `/images/${imageFileName}`,
+      imageUrl: imageUrlBase,
       metadataUrl,
       metadataFileName
     });
