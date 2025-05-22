@@ -249,10 +249,7 @@ export function NFTMinter({ wallet }: NFTMinterProps) {
       
       // Vercel環境でのデバッグ情報を表示
       if (data.isVercelProduction) {
-        console.log("Vercel環境での一時ファイル情報:", {
-          tmpImagePath: data.tmpImagePath,
-          tmpMetadataPath: data.tmpMetadataPath
-        });
+        console.log("Vercel環境: メタデータを直接使用します");
       }
       
       // XRPLクライアントを取得
@@ -276,10 +273,17 @@ export function NFTMinter({ wallet }: NFTMinterProps) {
       
       try {
         // NFTをミント - メタデータURLをURIとして使用
+        // Vercel環境の場合は直接メタデータを使用
+        const metadataUri = data.isVercelProduction 
+          ? data.metadataRaw  // 直接JSONメタデータを使用
+          : data.metadataUrl; // JSONメタデータへのURL
+          
+        console.log("使用するメタデータ:", metadataUri);
+        
         const nftokenID = await mintNFT(
           client,
           wallet,
-          data.metadataUrl, // JSONメタデータへのURL
+          metadataUri,
           values.transferFee,
           values.isBurnable,    // フォームから取得したフラグを使用
           values.isTransferable, // フォームから取得したフラグを使用
@@ -322,10 +326,16 @@ export function NFTMinter({ wallet }: NFTMinterProps) {
             
             // 再接続後に再度ミントを試みる
             toast.info("再接続しました。NFTミントを再試行しています...");
+            
+            // Vercel環境の場合は直接メタデータを使用
+            const metadataUri = data.isVercelProduction 
+              ? data.metadataRaw  // 直接JSONメタデータを使用
+              : data.metadataUrl; // JSONメタデータへのURL
+              
             const nftokenID = await mintNFT(
               client,
               wallet,
-              data.metadataUrl,
+              metadataUri,
               values.transferFee,
               values.isBurnable,
               values.isTransferable,

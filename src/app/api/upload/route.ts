@@ -64,6 +64,11 @@ export async function POST(request: NextRequest) {
     const imagePath = join(imagesDirectory, imageFileName);
     await writeFile(imagePath, buffer);
     
+    // 画像をBase64エンコード
+    const imageBase64 = buffer.toString('base64');
+    const imageType = file.type || 'image/jpeg'; // デフォルトのMIMEタイプ
+    const imageDataUri = `data:${imageType};base64,${imageBase64}`;
+    
     // メタデータJSONを作成
     const metadataFileName = `${Date.now()}_metadata.json`;
     const metadataPath = join(metadataDirectory, metadataFileName);
@@ -72,34 +77,34 @@ export async function POST(request: NextRequest) {
     const metadata = {
       name,
       description,
-      image: imageUrlBase,
+      image: isVercelProduction ? imageDataUri : imageUrlBase, // Vercel環境ではBase64画像を使用
       created_at: new Date().toISOString()
     };
     
     // メタデータJSONを保存
     await writeFile(metadataPath, JSON.stringify(metadata, null, 2));
     
+    // メタデータをJSON文字列として取得
+    const metadataJson = JSON.stringify(metadata);
+    
     // クライアントに返すURL
     const metadataUrl = `${metadataUrlBase}/${metadataFileName}`;
 
-    // Vercel環境では、一時ファイルのURLを返すだけ（実際のファイルアクセスはできない）
+    // Vercel環境では、メタデータを直接レスポンスに含める
     if (isVercelProduction) {
       console.log('Vercel環境: 一時ファイルを作成しました', { 
         imagePath, 
         metadataPath,
-        imageUrlBase,
-        metadataUrl
+        imageBase64Length: imageBase64.length
       });
       
-      // 一時ファイルのパスをレスポンスに含める（デバッグ用）
+      // メタデータ文字列を直接返す
       return NextResponse.json({
         success: true,
-        imageUrl: imageUrlBase,
-        metadataUrl: metadataUrl,
-        metadataFileName,
-        isVercelProduction: true,
-        tmpImagePath: imagePath,
-        tmpMetadataPath: metadataPath
+        imageUrl: imageDataUri, // Base64エンコードされた画像
+        metadataUrl: metadataJson, // メタデータJSONを直接返す
+        metadataRaw: metadataJson, // 直接使用できるメタデータ
+        isVercelProduction: true
       });
     }
 
