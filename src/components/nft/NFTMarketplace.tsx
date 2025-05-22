@@ -269,6 +269,20 @@ export function NFTMarketplace({ wallet }: NFTMarketplaceProps) {
         str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
       }
       
+      // Vercel Blob URLの場合、実際にフェッチして取得する
+      if (str.includes('blob.vercel-storage.com')) {
+        try {
+          // 非同期処理はここでは行わず、URLをそのまま返してNFTItemコンポーネントに委ねる
+          return { 
+            name: "Vercel Blob NFT", 
+            description: "Metadata stored on Vercel Blob",
+            image: "" // 画像URLはメタデータから取得する
+          };
+        } catch (error) {
+          console.error("Failed to handle Vercel Blob metadata:", error);
+        }
+      }
+      
       // 相対パスURLかdata:URLかを確認
       if (str.startsWith('/metadata/')) {
         try {

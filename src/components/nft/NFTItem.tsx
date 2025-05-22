@@ -126,6 +126,11 @@ export function NFTItem({ nft, wallet, onUpdate, offerAmount, offerID, offer, my
         str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
       }
       
+      // Vercel Blob URLの場合
+      if (str.includes('blob.vercel-storage.com')) {
+        return { url: str, isExternalUrl: true };
+      }
+      
       // 相対パスURLかdata:URLかを確認
       if (str.startsWith('/metadata/')) {
         return { url: str, isLocalUrl: true };
@@ -149,7 +154,7 @@ export function NFTItem({ nft, wallet, onUpdate, offerAmount, offerID, offer, my
     const metadata = getMetadata();
     
     // URLの場合、実際にフェッチする
-    if (metadata && metadata.isLocalUrl) {
+    if (metadata && (metadata.isLocalUrl || metadata.isExternalUrl)) {
       const fetchData = async () => {
         try {
           const response = await fetch(metadata.url);
