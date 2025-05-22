@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
     // 環境変数
     IS_VERCEL_PRODUCTION: process.env.VERCEL === '1',
   },
+  // 画像最適化の設定を追加
+  images: {
+    path: "/",
+  },
 };
 
 export default nextConfig;
