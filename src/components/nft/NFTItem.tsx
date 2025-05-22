@@ -31,23 +31,6 @@ export interface NFTItemProps {
 
 export function NFTItem({ nft, wallet, onUpdate, offerAmount, offerID, offer, myBuyOffer, isOwnedList = false, disabled = false }: NFTItemProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [isProcessingSale, setIsProcessingSale] = useState<boolean>(() => {
-    // マウント時にlocalStorageから処理状態を復元
-    if (typeof window !== 'undefined') {
-      const storedValue = localStorage.getItem(`nft_sale_${nft.NFTokenID}`);
-      if (storedValue) {
-        const { timestamp } = JSON.parse(storedValue);
-        // 1時間以上経過していたら処理中状態を解除（無限に処理中にならないようにする）
-        if (Date.now() - timestamp < 3600000) {
-          return true;
-        } else {
-          // 古いデータは削除
-          localStorage.removeItem(`nft_sale_${nft.NFTokenID}`);
-        }
-      }
-    }
-    return false;
-  });
   const [sellAmount, setSellAmount] = useState("");
   const [sellDialogOpen, setSellDialogOpen] = useState(false);
   const [metadata, setMetadata] = useState<NFTMetadata | null>(null);
@@ -62,8 +45,7 @@ export function NFTItem({ nft, wallet, onUpdate, offerAmount, offerID, offer, my
   // クリーンアップ処理
   useEffect(() => {
     return () => {
-      // コンポーネントのアンマウント時には処理状態を解除しない
-      // 別ページに移動しても状態は維持される
+      // コンポーネントのアンマウント時の処理（不要になったため空にする）
     };
   }, []);
 
@@ -90,6 +72,9 @@ export function NFTItem({ nft, wallet, onUpdate, offerAmount, offerID, offer, my
   // offerオブジェクトから情報を抽出（優先的に使用）
   const effectiveOfferID = offer?.offerID || offerID;
   const effectiveOfferAmount = offer?.amount || offerAmount;
+  
+  // 売りオファーが存在するかどうかの判定
+  const hasSellOffer = !!effectiveOfferID && !!effectiveOfferAmount;
 
   // XRPドロップス（6桁精度）から表示用のXRP金額に変換
   const formatAmountFromDrops = (drops: string) => {
@@ -99,20 +84,6 @@ export function NFTItem({ nft, wallet, onUpdate, offerAmount, offerID, offer, my
 
   const [buyAmount, setBuyAmount] = useState(effectiveOfferAmount ? formatAmountFromDrops(effectiveOfferAmount) : "");
   const [buyDialogOpen, setBuyDialogOpen] = useState(false);
-
-  // 処理状態をlocalStorageに保存する関数
-  const saveProcessingState = (processing: boolean) => {
-    if (typeof window !== 'undefined') {
-      if (processing) {
-        localStorage.setItem(`nft_sale_${nft.NFTokenID}`, JSON.stringify({ 
-          timestamp: Date.now()
-        }));
-      } else {
-        localStorage.removeItem(`nft_sale_${nft.NFTokenID}`);
-      }
-    }
-    setIsProcessingSale(processing);
-  };
 
   // URIからメタデータを解析
   const getMetadata = () => {
@@ -203,7 +174,7 @@ export function NFTItem({ nft, wallet, onUpdate, offerAmount, offerID, offer, my
     
     try {
       setIsLoading(true);
-      saveProcessingState(true); // 処理中状態をローカルストレージに保存
+      // 処理状態の保存は不要になったため削除
       setSellDialogOpen(false); // ダイアログを閉じる
       
       const client = await getClient();
@@ -218,11 +189,11 @@ export function NFTItem({ nft, wallet, onUpdate, offerAmount, offerID, offer, my
       );
       
       toast.success("NFTを売りに出しました");
-      onUpdate?.();
+      onUpdate?.(); // リストを更新して最新の売りオファー情報を反映
     } catch (error) {
       console.error("Failed to sell NFT:", error);
       toast.error("NFTの出品に失敗しました");
-      saveProcessingState(false); // エラー時は処理中状態を解除
+      // エラー時の処理状態解除も不要になったため削除
     } finally {
       setIsLoading(false);
     }
@@ -427,7 +398,7 @@ export function NFTItem({ nft, wallet, onUpdate, offerAmount, offerID, offer, my
       
       <CardFooter className="p-4 pt-0 flex gap-2">
         {/* 自分のNFTリストで、かつ自分のNFTの場合は売るボタンを表示（転送可能な場合のみ） */}
-        {isOwnedList && isOwner() && isTransferable && !isProcessingSale && (
+        {isOwnedList && isOwner() && isTransferable && !hasSellOffer && (
           <Dialog open={sellDialogOpen} onOpenChange={setSellDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="default" size="sm" className="flex-1 bg-green-600 hover:bg-green-700" disabled={isLoading || disabled}>
@@ -474,10 +445,10 @@ export function NFTItem({ nft, wallet, onUpdate, offerAmount, offerID, offer, my
           </Dialog>
         )}
         
-        {/* 売却処理中の表示 */}
-        {isOwnedList && isOwner() && isTransferable && isProcessingSale && (
+        {/* 売却中の表示 - 実際の売りオファーの存在に基づいて表示 */}
+        {isOwnedList && isOwner() && isTransferable && hasSellOffer && (
           <Button variant="outline" size="sm" className="flex-1 bg-amber-50 text-amber-800 border-amber-200" disabled={true}>
-            売却中...
+            売却中... ({formatAmountFromDrops(effectiveOfferAmount)} XRP)
           </Button>
         )}
         
@@ -583,7 +554,7 @@ export function NFTItem({ nft, wallet, onUpdate, offerAmount, offerID, offer, my
         )}
         
         {/* 自分のNFTリストで、自分のNFTの場合、かつ焼却可能な場合のみ焼却ボタンを表示 */}
-        {isOwnedList && isOwner() && isBurnable && !isProcessingSale && (
+        {isOwnedList && isOwner() && isBurnable && !hasSellOffer && (
           <Button 
             variant="destructive" 
             size="sm" 
