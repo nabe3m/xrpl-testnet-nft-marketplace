@@ -249,7 +249,14 @@ export function NFTMinter({ wallet }: NFTMinterProps) {
       
       // Vercel環境でのデバッグ情報を表示
       if (data.isVercelProduction) {
-        console.log("Vercel環境: メタデータを直接使用します");
+        if (data.usingBlob) {
+          console.log("Vercel Blob: ファイルをBlobストレージにアップロードしました", {
+            imageUrl: data.imageUrl,
+            metadataUrl: data.metadataUrl
+          });
+        } else {
+          console.log("Vercel環境: メタデータを直接使用します");
+        }
       }
       
       // XRPLクライアントを取得
@@ -272,14 +279,25 @@ export function NFTMinter({ wallet }: NFTMinterProps) {
       });
       
       try {
-        // NFTをミント - メタデータURLをURIとして使用
-        // Vercel環境の場合は直接メタデータを使用
-        const metadataUri = data.isVercelProduction 
-          ? data.metadataRaw  // 直接JSONメタデータを使用
-          : data.metadataUrl; // JSONメタデータへのURL
-          
+        // メタデータURIを決定
+        let metadataUri;
+        
+        if (data.isVercelProduction) {
+          if (data.usingBlob) {
+            // Vercel Blobを使用している場合はメタデータURLを使用
+            metadataUri = data.metadataUrl;
+          } else {
+            // 直接JSONメタデータを使用
+            metadataUri = data.metadataJson;
+          }
+        } else {
+          // 開発環境ではメタデータURLを使用
+          metadataUri = data.metadataUrl;
+        }
+        
         console.log("使用するメタデータ:", metadataUri);
         
+        // NFTをミント
         const nftokenID = await mintNFT(
           client,
           wallet,
@@ -327,11 +345,22 @@ export function NFTMinter({ wallet }: NFTMinterProps) {
             // 再接続後に再度ミントを試みる
             toast.info("再接続しました。NFTミントを再試行しています...");
             
-            // Vercel環境の場合は直接メタデータを使用
-            const metadataUri = data.isVercelProduction 
-              ? data.metadataRaw  // 直接JSONメタデータを使用
-              : data.metadataUrl; // JSONメタデータへのURL
-              
+            // メタデータURIを決定
+            let metadataUri;
+            
+            if (data.isVercelProduction) {
+              if (data.usingBlob) {
+                // Vercel Blobを使用している場合はメタデータURLを使用
+                metadataUri = data.metadataUrl;
+              } else {
+                // 直接JSONメタデータを使用
+                metadataUri = data.metadataJson;
+              }
+            } else {
+              // 開発環境ではメタデータURLを使用
+              metadataUri = data.metadataUrl;
+            }
+            
             const nftokenID = await mintNFT(
               client,
               wallet,
