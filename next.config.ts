@@ -2,12 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb', // アップロードサイズ制限を10MBに設定
-    },
-    responseLimit: false, // レスポンスサイズ制限を無効化
-  },
   // Vercel環境でのファイルシステムアクセスに関する設定
   serverRuntimeConfig: {
     // サーバー側でのみ利用可能な設定
