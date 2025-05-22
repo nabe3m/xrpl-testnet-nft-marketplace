@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# XRPL NFT マーケットプレイス
 
-## Getting Started
+XRPLのテストネット上でNFTを発行・取引できるマーケットプレイスアプリケーションです。
 
-First, run the development server:
+## 機能
+
+- **ウォレット管理**: 複数のテストネットウォレットを作成・管理
+- **NFT発行**: 画像とメタデータを使用してNFTを発行
+- **NFT販売**: 所有するNFTを販売リスト化
+- **NFT購入**: 他のユーザーが販売しているNFTを購入
+- **オファー管理**: 受信したNFT購入オファーの確認と承認
+
+## 技術スタック
+
+- **フロントエンド**: Next.js 15、React 19、TypeScript
+- **スタイリング**: TailwindCSS 4
+- **状態管理**: Zustand
+- **XRPL連携**: xrpl.js
+- **UI/UXコンポーネント**: Radix UI、Sonner
+
+## 前提条件
+
+- Node.js 18.0.0以上
+- npm 8.0.0以上
+
+## インストール
 
 ```bash
+# リポジトリをクローン
+git clone https://github.com/nabe3_m/xrpl-nft-marketplace.git
+cd xrpl-nft-marketplace
+
+# 依存関係をインストール
+npm install
+
+# 開発サーバーを起動
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+[http://localhost:3000](http://localhost:3000)にアクセスしてアプリケーションを確認できます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 使用方法
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **ウォレット作成**
+   - 「ウォレット作成」ボタンをクリックしてテストネットウォレットを作成します
+   - Alice、Bob、Carolの3つのウォレットが自動的に作成されます
 
-## Learn More
+2. **NFT発行**
+   - 「NFT発行」セクションで画像をアップロードし、名前と説明を入力
+   - 「NFTを発行」ボタンをクリックしてNFTを作成
 
-To learn more about Next.js, take a look at the following resources:
+3. **NFT販売**
+   - 「保有NFT」タブで所有するNFTを確認
+   - 「販売」ボタンをクリックし、価格を設定して販売を開始
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. **NFT購入**
+   - ウォレットを切り替えて別のユーザーになる
+   - 「マーケットプレイス」タブで販売中のNFTを確認
+   - 「購入」ボタンをクリックして購入、または「オファー作成」で価格を提案
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+5. **オファー管理**
+   - 「受信オファー」タブで他のユーザーからの購入オファーを確認
+   - 「売却する」ボタンをクリックしてオファーを承認
 
-## Deploy on Vercel
+## 注意事項
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- このアプリケーションはXRPLテストネット上で動作します
+- 実際の資産は使用されません
+- WebSocketを使用するため、ネットワーク接続が必要です
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## ライセンス
+
+MIT
+
+## 開発者
+
+- [Nabe3](https://github.com/nabe3_m)
